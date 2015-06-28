@@ -1,2 +1,2 @@
-# assets-service-pg
+# assets-pg
 Manage Assets, with node and postgres
