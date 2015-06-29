@@ -31,7 +31,7 @@ test('create schema', function (t) {
   })
 })
 
-test('can put assets', function (t) {
+test('can insert assets', function (t) {
   var expected = {
     name: 'my long asset',
     status: 'wait'
@@ -43,5 +43,36 @@ test('can put assets', function (t) {
     t.deepEqual(result, expected, 'matches')
     pg.end()
     t.end()
+  })
+})
+
+test('can update assets', function (t) {
+  var toWrite = {
+    name: 'my long asset',
+    status: 'wait'
+  }
+  assets.put(toWrite, function (err, result) {
+    t.error(err, 'no error')
+    result.name = 'another name'
+    assets.put(result, function (err, result2) {
+      t.deepEqual(result2, result, 'matches')
+      pg.end()
+      t.end()
+    })
+  })
+})
+
+test('can get assets', function (t) {
+  var toWrite = {
+    name: 'my long asset',
+    status: 'wait'
+  }
+  assets.put(toWrite, function (err, expected) {
+    t.error(err, 'no error')
+    assets.get(expected.id, function (err, result) {
+      t.deepEqual(result, expected, 'matches')
+      pg.end()
+      t.end()
+    })
   })
 })

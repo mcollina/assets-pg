@@ -7,6 +7,8 @@ var fastfall = require('fastfall')
 var createTable = readQuery('create.sql')
 var dropTable = readQuery('drop.sql')
 var insertAsset = readQuery('insert.sql')
+var updateAsset = readQuery('update.sql')
+var getOne = readQuery('get_one.sql')
 
 function readQuery (file) {
   return fs.readFileSync(path.join(__dirname, 'sql', file), 'utf8')
@@ -19,7 +21,8 @@ function assets (connString) {
   return {
     createSchema: withConn(createSchema),
     dropSchema: withConn(dropSchema),
-    put: withConn(put)
+    put: withConn(put),
+    get: withConn(get)
   }
 
   function Holder () {
@@ -69,10 +72,23 @@ function assets (connString) {
   }
 
   function put (asset, callback) {
-    this.query(insertAsset, [
+    var toExec = asset.id ? updateAsset : insertAsset
+    var args = [
       asset.name,
       asset.status
-    ], function (err, result) {
+    ]
+
+    if (asset.id) {
+      args.unshift(asset.id)
+    }
+
+    this.query(toExec, args, function (err, result) {
+      callback(err, result.rows[0])
+    })
+  }
+
+  function get (id, callback) {
+    this.query(getOne, [id], function (err, result) {
       callback(err, result.rows[0])
     })
   }
