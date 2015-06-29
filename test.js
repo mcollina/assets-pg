@@ -55,6 +55,7 @@ test('can update assets', function (t) {
     t.error(err, 'no error')
     result.name = 'another name'
     assets.put(result, function (err, result2) {
+      t.error(err, 'no error')
       t.deepEqual(result2, result, 'matches')
       pg.end()
       t.end()
@@ -70,6 +71,7 @@ test('can get assets', function (t) {
   assets.put(toWrite, function (err, expected) {
     t.error(err, 'no error')
     assets.get(expected.id, function (err, result) {
+      t.error(err, 'no error')
       t.deepEqual(result, expected, 'matches')
       pg.end()
       t.end()

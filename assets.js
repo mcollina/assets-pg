@@ -21,8 +21,14 @@ function assets (connString) {
   return {
     createSchema: withConn(createSchema),
     dropSchema: withConn(dropSchema),
-    put: withConn(put),
-    get: withConn(get)
+    put: withConn(fastfall([
+      execPut,
+      returnFirst
+    ])),
+    get: withConn(fastfall([
+      execGet,
+      returnFirst
+    ]))
   }
 
   function Holder () {
@@ -71,7 +77,7 @@ function assets (connString) {
     this.query(dropTable, callback)
   }
 
-  function put (asset, callback) {
+  function execPut (asset, callback) {
     var toExec = asset.id ? updateAsset : insertAsset
     var args = [
       asset.name,
@@ -82,15 +88,15 @@ function assets (connString) {
       args.unshift(asset.id)
     }
 
-    this.query(toExec, args, function (err, result) {
-      callback(err, result.rows[0])
-    })
+    this.query(toExec, args, callback)
   }
 
-  function get (id, callback) {
-    this.query(getOne, [id], function (err, result) {
-      callback(err, result.rows[0])
-    })
+  function returnFirst (result, callback) {
+    callback(null, result.rows[0])
+  }
+
+  function execGet (id, callback) {
+    this.query(getOne, [id], callback)
   }
 }
 
