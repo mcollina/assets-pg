@@ -6,6 +6,7 @@ var path = require('path')
 var fastfall = require('fastfall')
 var createTable = readQuery('create.sql')
 var dropTable = readQuery('drop.sql')
+var insertAsset = readQuery('insert.sql')
 
 function readQuery (file) {
   return fs.readFileSync(path.join(__dirname, 'sql', file), 'utf8')
@@ -17,7 +18,8 @@ function assets (connString) {
 
   return {
     createSchema: withConn(createSchema),
-    dropSchema: withConn(dropSchema)
+    dropSchema: withConn(dropSchema),
+    put: withConn(put)
   }
 
   function Holder () {
@@ -64,6 +66,15 @@ function assets (connString) {
 
   function dropSchema (callback) {
     this.query(dropTable, callback)
+  }
+
+  function put (asset, callback) {
+    this.query(insertAsset, [
+      asset.name,
+      asset.status
+    ], function (err, result) {
+      callback(err, result.rows[0])
+    })
   }
 }
 

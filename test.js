@@ -6,7 +6,6 @@ var pg = require('pg')
 
 var connString = 'postgres://localhost/assets_tests'
 var schemaQuery = 'select column_name, data_type, character_maximum_length from INFORMATION_SCHEMA.COLUMNS where table_name = \'assets\''
-//var schemaQuery = 'select table_name from assets_tests.COLUMNS'
 var assets
 
 test('create schema', function (t) {
@@ -32,7 +31,17 @@ test('create schema', function (t) {
   })
 })
 
-test.skip('can insert assets', function (t) {
-  t.equal(typeof assets, 'function', 'is a function')
-  t.end()
+test('can put assets', function (t) {
+  var expected = {
+    name: 'my long asset',
+    status: 'wait'
+  }
+  assets.put(expected, function (err, result) {
+    t.error(err, 'no error')
+    t.ok(result.id, 'it has an id')
+    delete result.id
+    t.deepEqual(result, expected, 'matches')
+    pg.end()
+    t.end()
+  })
 })
