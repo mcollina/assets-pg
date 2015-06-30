@@ -8,7 +8,7 @@ An asset can be in three states: `'wait'`, `'operational'` and
 ## Install
 
 ```
-npm install @matteo.collina/assets-pg
+npm install @matteo.collina/assets-pg --save
 ```
 
 <a name="api"></a>
