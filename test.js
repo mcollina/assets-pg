@@ -3,6 +3,7 @@
 var test = require('tape')
 var build = require('./')
 var pg = require('pg')
+var Joi = require('joi')
 
 var connString = 'postgres://localhost/assets_tests'
 var schemaQuery = 'select column_name, data_type, character_maximum_length from INFORMATION_SCHEMA.COLUMNS where table_name = \'assets\''
@@ -76,5 +77,83 @@ test('can get assets', function (t) {
       pg.end()
       t.end()
     })
+  })
+})
+
+test('cannot insert an asset without a name', function (t) {
+  var expected = {
+    name: '',
+    status: 'wait'
+  }
+  assets.put(expected, function (err, result) {
+    t.ok(err, 'insert errors')
+    t.equal(err.name, 'ValidationError', 'error type matches')
+    t.equal(err.details[0].message, '"name" is not allowed to be empty', 'validation error matches')
+    pg.end()
+    t.end()
+  })
+})
+
+test('mirror test validation', function (t) {
+  var expected = {
+    name: '',
+    status: 'wait'
+  }
+  assets.put(expected, function (err, result) {
+    Joi.validate(expected, assets.joiSchema, function (expected) {
+      t.deepEqual(err, expected, 'error matches')
+      pg.end()
+      t.end()
+    })
+  })
+})
+
+test('status can be operational', function (t) {
+  var expected = {
+    name: 'a name',
+    status: 'operational'
+  }
+  assets.put(expected, function (err, result) {
+    t.error(err, 'no error')
+    t.equal(result.status, 'operational', 'status matches')
+    pg.end()
+    t.end()
+  })
+})
+
+test('status can be error', function (t) {
+  var expected = {
+    name: 'a name',
+    status: 'error'
+  }
+  assets.put(expected, function (err, result) {
+    t.error(err, 'no error')
+    t.equal(result.status, 'error', 'status matches')
+    pg.end()
+    t.end()
+  })
+})
+
+test('status cannot be something else', function (t) {
+  var expected = {
+    name: 'a name',
+    status: 'something else'
+  }
+  assets.put(expected, function (err, result) {
+    t.ok(err, 'errors')
+    pg.end()
+    t.end()
+  })
+})
+
+test('status defaults to wait', function (t) {
+  var expected = {
+    name: 'a name'
+  }
+  assets.put(expected, function (err, result) {
+    t.error(err, 'no error')
+    t.equal(result.status, 'wait', 'status defaults to "wait"')
+    pg.end()
+    t.end()
   })
 })

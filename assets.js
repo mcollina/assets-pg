@@ -4,11 +4,21 @@ var pg = require('pg')
 var fs = require('fs')
 var path = require('path')
 var fastfall = require('fastfall')
+var Joi = require('joi')
 var createTable = readQuery('create.sql')
 var dropTable = readQuery('drop.sql')
 var insertAsset = readQuery('insert.sql')
 var updateAsset = readQuery('update.sql')
 var getOne = readQuery('get_one.sql')
+
+var schema = {
+  id: Joi.number().positive(),
+  name: Joi.string().required(),
+  status: Joi
+    .string()
+    .default('wait')
+    .valid(['wait', 'operational', 'error'])
+}
 
 function readQuery (file) {
   return fs.readFileSync(path.join(__dirname, 'sql', file), 'utf8')
@@ -19,9 +29,11 @@ function assets (connString) {
   var fall = fastfall()
 
   return {
+    joiSchema: schema,
     createSchema: withConn(createSchema),
     dropSchema: withConn(dropSchema),
     put: withConn(fastfall([
+      validate,
       execPut,
       returnFirst
     ])),
@@ -75,6 +87,10 @@ function assets (connString) {
 
   function dropSchema (callback) {
     this.query(dropTable, callback)
+  }
+
+  function validate (asset, callback) {
+    Joi.validate(asset, schema, callback)
   }
 
   function execPut (asset, callback) {
