@@ -157,3 +157,15 @@ test('status defaults to wait', function (t) {
     t.end()
   })
 })
+
+test('getting an non-existing asset', function (t) {
+  assets.get(42, function (err, result) {
+    t.ok(err, 'errors')
+    t.notOk(result, 'no result')
+    t.equal(err.output.statusCode, 404, 'status code matches')
+    t.equal(err.status, 404, 'status code matches')
+    t.equal(err.notFound, true, 'notFound property matches')
+    pg.end()
+    t.end()
+  })
+})

@@ -5,6 +5,7 @@ var fs = require('fs')
 var path = require('path')
 var fastfall = require('fastfall')
 var Joi = require('joi')
+var boom = require('boom')
 var createTable = readQuery('create.sql')
 var dropTable = readQuery('drop.sql')
 var insertAsset = readQuery('insert.sql')
@@ -108,7 +109,17 @@ function assets (connString) {
   }
 
   function returnFirst (result, callback) {
-    callback(null, result.rows[0])
+    var err = null
+
+    if (result.rows.length === 0) {
+      err = boom.notFound('asset not found')
+
+      // connect compatibility
+      err.notFound = true
+      err.status = 404
+    }
+
+    callback(err, result.rows[0])
   }
 
   function execGet (id, callback) {
