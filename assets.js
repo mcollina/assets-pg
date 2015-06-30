@@ -1,9 +1,8 @@
 'use strict'
 
-var pg = require('pg')
 var fs = require('fs')
 var path = require('path')
-var fastfall = require('fastfall')
+var withConn = require('with-conn-pg')
 var Joi = require('joi')
 var boom = require('boom')
 var createTable = readQuery('create.sql')
@@ -27,74 +26,37 @@ function readQuery (file) {
 
 function assets (connString) {
 
-  var fall = fastfall()
-
   return {
     joiSchema: schema,
-    createSchema: withConn(createSchema),
-    dropSchema: withConn(dropSchema),
-    put: withConn(fastfall([
-      validate,
+    createSchema: withConn(connString, createSchema),
+    dropSchema: withConn(connString, dropSchema),
+    put: withConn(connString, [
       execPut,
       returnFirst
-    ])),
-    get: withConn(fastfall([
+    ]),
+    get: withConn(connString, [
       execGet,
       returnFirst
-    ]))
+    ])
   }
 
-  function Holder () {
-    this.args = []
-    this.func = null
-    this.conn = null
+  function createSchema (conn, callback) {
+    conn.query(createTable, callback)
   }
 
-  function withConn (func) {
-    return function () {
-      var holder = new Holder()
-      holder.func = func
-      holder.callback = arguments[arguments.length - 1]
+  function dropSchema (conn, callback) {
+    conn.query(dropTable, callback)
+  }
 
-      for (var i = 0; i < arguments.length - 1; i++) {
-        holder.args[i] = arguments[i]
-      }
+  function execPut (conn, asset, callback) {
+    var valResult = Joi.validate(asset, schema)
 
-      fall(holder, [
-        getConn,
-        execute
-      ], release)
+    if (valResult.error) {
+      return callback(valResult.error)
     }
-  }
 
-  function getConn (next) {
-    pg.connect(connString, next)
-  }
+    asset = valResult.value
 
-  function execute (conn, done, next) {
-    this.done = done
-    this.args.push(next)
-    this.func.apply(conn, this.args)
-  }
-
-  function release () {
-    this.done()
-    this.callback.apply(null, arguments)
-  }
-
-  function createSchema (callback) {
-    this.query(createTable, callback)
-  }
-
-  function dropSchema (callback) {
-    this.query(dropTable, callback)
-  }
-
-  function validate (asset, callback) {
-    Joi.validate(asset, schema, callback)
-  }
-
-  function execPut (asset, callback) {
     var toExec = asset.id ? updateAsset : insertAsset
     var args = [
       asset.name,
@@ -105,7 +67,7 @@ function assets (connString) {
       args.unshift(asset.id)
     }
 
-    this.query(toExec, args, callback)
+    conn.query(toExec, args, callback)
   }
 
   function returnFirst (result, callback) {
@@ -122,8 +84,8 @@ function assets (connString) {
     callback(err, result.rows[0])
   }
 
-  function execGet (id, callback) {
-    this.query(getOne, [id], callback)
+  function execGet (conn, id, callback) {
+    conn.query(getOne, [id], callback)
   }
 }
 
