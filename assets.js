@@ -25,7 +25,6 @@ function readQuery (file) {
 }
 
 function assets (connString) {
-
   return {
     joiSchema: schema,
     createSchema: withConn(connString, createSchema),
