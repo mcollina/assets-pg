@@ -2,7 +2,7 @@
 
 var test = require('tape')
 var build = require('./')
-var withConn = require('with-conn-pg')
+var WithConn = require('with-conn-pg')
 var Joi = require('joi')
 
 var connString = 'postgres://localhost/assets_tests'
@@ -14,7 +14,8 @@ test('create schema', function (t) {
   assets.dropSchema(function () {
     assets.createSchema(function (err) {
       t.error(err, 'no error')
-      withConn(connString, function (conn, done) {
+      var withConn = WithConn(connString)
+      withConn(function (conn, done) {
         t.error(err, 'no error')
 
         conn.query(schemaQuery, function (err, result) {
@@ -44,7 +45,6 @@ test('can insert assets', function (t) {
     t.ok(result.id, 'it has an id')
     delete result.id
     t.deepEqual(result, expected, 'matches')
-    withConn.end()
     t.end()
   })
 })
@@ -60,7 +60,6 @@ test('can update assets', function (t) {
     assets.put(result, function (err, result2) {
       t.error(err, 'no error')
       t.deepEqual(result2, result, 'matches')
-      withConn.end()
       t.end()
     })
   })
@@ -76,7 +75,6 @@ test('can get assets', function (t) {
     assets.get(expected.id, function (err, result) {
       t.error(err, 'no error')
       t.deepEqual(result, expected, 'matches')
-      withConn.end()
       t.end()
     })
   })
@@ -91,7 +89,6 @@ test('cannot insert an asset without a name', function (t) {
     t.ok(err, 'insert errors')
     t.equal(err.name, 'ValidationError', 'error type matches')
     t.equal(err.details[0].message, '"name" is not allowed to be empty', 'validation error matches')
-    withConn.end()
     t.end()
   })
 })
@@ -104,7 +101,6 @@ test('mirror test validation', function (t) {
   assets.put(expected, function (err, result) {
     Joi.validate(expected, assets.joiSchema, function (expected) {
       t.deepEqual(err, expected, 'error matches')
-      withConn.end()
       t.end()
     })
   })
@@ -118,7 +114,6 @@ test('status can be operational', function (t) {
   assets.put(expected, function (err, result) {
     t.error(err, 'no error')
     t.equal(result.status, 'operational', 'status matches')
-    withConn.end()
     t.end()
   })
 })
@@ -131,7 +126,6 @@ test('status can be error', function (t) {
   assets.put(expected, function (err, result) {
     t.error(err, 'no error')
     t.equal(result.status, 'error', 'status matches')
-    withConn.end()
     t.end()
   })
 })
@@ -143,7 +137,6 @@ test('status cannot be something else', function (t) {
   }
   assets.put(expected, function (err, result) {
     t.ok(err, 'errors')
-    withConn.end()
     t.end()
   })
 })
@@ -155,7 +148,6 @@ test('status defaults to wait', function (t) {
   assets.put(expected, function (err, result) {
     t.error(err, 'no error')
     t.equal(result.status, 'wait', 'status defaults to "wait"')
-    withConn.end()
     t.end()
   })
 })
@@ -167,7 +159,11 @@ test('getting an non-existing asset', function (t) {
     t.equal(err.output.statusCode, 404, 'status code matches')
     t.equal(err.status, 404, 'status code matches')
     t.equal(err.notFound, true, 'notFound property matches')
-    withConn.end()
     t.end()
   })
+})
+
+test('ends', function (t) {
+  assets.end()
+  t.end()
 })

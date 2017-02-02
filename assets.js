@@ -25,18 +25,21 @@ function readQuery (file) {
 }
 
 function assets (connString) {
+  var conn = withConn(connString)
+
   return {
     joiSchema: schema,
-    createSchema: withConn(connString, createSchema),
-    dropSchema: withConn(connString, dropSchema),
-    put: withConn(connString, [
+    createSchema: conn(createSchema),
+    dropSchema: conn(dropSchema),
+    put: conn([
       execPut,
       returnFirst
     ]),
-    get: withConn(connString, [
+    get: conn([
       execGet,
       returnFirst
-    ])
+    ]),
+    end: conn.end.bind(conn)
   }
 
   function createSchema (conn, callback) {
