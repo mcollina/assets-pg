@@ -75,6 +75,13 @@ Create the schema in PostgreSQL for this module.
 
 Drop the schema in PostgreSQL for this module.
 
+-------------------------------------------------------
+
+<a name="end"></a>
+### assets.end()
+
+Ends the PG connection pool.
+
 ## License
 
 MIT

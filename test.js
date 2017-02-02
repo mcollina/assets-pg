@@ -20,10 +20,12 @@ test('create schema', function (t) {
 
         conn.query(schemaQuery, function (err, result) {
           t.error(err, 'no error')
-          t.equal(result.rows.length, 3, 'has 3 columns')
-          t.equal(result.rows[0].column_name, 'id', 'has an id')
-          t.equal(result.rows[1].column_name, 'name', 'has a name')
-          t.equal(result.rows[2].column_name, 'status', 'has a status')
+          var columns = result.rows.map((row) => row.column_name).sort()
+          t.deepEqual(columns, [
+            'id',
+            'name',
+            'status'
+          ], 'columns match')
           done()
         })
       })(function (err) {
