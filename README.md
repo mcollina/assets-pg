@@ -47,8 +47,9 @@ Adds or updates an asset. An asset can have three properties:
 3. the `'status'`, which can be any of
    `'wait'`, `'operational'` and `'error'`.
 
-Validation is provided by [Joi](http://npm.im/joi), and a Joi error
-object will be provided in case of validation errors.
+Validation is provided by [ajv](http://npm.im/ajv), and a `new
+createError.UnprocessableEntity()` (from [http-errors](https://www.npmjs.com/package/http-errors))
+with the ajv errors attached to the `details`.
 
 The returned asset includes the `id`, if missing.
 
@@ -58,7 +59,7 @@ The returned asset includes the `id`, if missing.
 ### assets.get(id, callback(err, asset))
 
 Fetches an assets, returns a
-[`boom.notFound`](https://www.npmjs.com/package/boom#boom-notfound-message-data)
+`new createError.NotFound()` (from [http-errors](https://www.npmjs.com/package/http-errors))
 if not present.
 
 -------------------------------------------------------
