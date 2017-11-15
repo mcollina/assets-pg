@@ -32,8 +32,8 @@
     "tape": "^4.6.0"
   },
   "dependencies": {
-    "boom": "^4.1.0",
-    "joi": "^10.2.0",
+    "ajv": "^5.3.0",
+    "http-errors": "^1.6.2",
     "with-conn-pg": "^2.0.0"
   }
 }

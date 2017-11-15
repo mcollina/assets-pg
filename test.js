@@ -3,8 +3,8 @@
 var test = require('tape')
 var build = require('./')
 var WithConn = require('with-conn-pg')
-var Joi = require('joi')
-
+var Ajv = require('ajv')
+var ajv = new Ajv({ useDefaults: true })
 var connString = 'postgres://localhost/assets_tests'
 var schemaQuery = 'select column_name, data_type, character_maximum_length from INFORMATION_SCHEMA.COLUMNS where table_name = \'assets\''
 var assets
@@ -89,8 +89,9 @@ test('cannot insert an asset without a name', function (t) {
   }
   assets.put(expected, function (err, result) {
     t.ok(err, 'insert errors')
-    t.equal(err.name, 'ValidationError', 'error type matches')
-    t.equal(err.details[0].message, '"name" is not allowed to be empty', 'validation error matches')
+    t.equal(err.name, 'UnprocessableEntityError', 'error type matches')
+    t.equal(err.status, 422, 'status code')
+    t.equal(err.details[0].message, 'should NOT be shorter than 1 characters', 'validation error matches')
     t.end()
   })
 })
@@ -101,10 +102,9 @@ test('mirror test validation', function (t) {
     status: 'wait'
   }
   assets.put(expected, function (err, result) {
-    Joi.validate(expected, assets.joiSchema, function (expected) {
-      t.deepEqual(err, expected, 'error matches')
-      t.end()
-    })
+    ajv.validate(assets.jsonSchema, expected)
+    t.deepEqual(err.details, ajv.errors, 'error matches')
+    t.end()
   })
 })
 
@@ -158,7 +158,6 @@ test('getting an non-existing asset', function (t) {
   assets.get(42, function (err, result) {
     t.ok(err, 'errors')
     t.notOk(result, 'no result')
-    t.equal(err.output.statusCode, 404, 'status code matches')
     t.equal(err.status, 404, 'status code matches')
     t.equal(err.notFound, true, 'notFound property matches')
     t.end()
