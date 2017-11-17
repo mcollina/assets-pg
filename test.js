@@ -1,6 +1,8 @@
 'use strict'
 
-var test = require('tape')
+var tap = require('tap')
+var test = tap.test
+var tearDown = tap.tearDown
 var build = require('./')
 var WithConn = require('with-conn-pg')
 var Ajv = require('ajv')
@@ -8,6 +10,10 @@ var ajv = new Ajv({ useDefaults: true })
 var connString = 'postgres://localhost/assets_tests'
 var schemaQuery = 'select column_name, data_type, character_maximum_length from INFORMATION_SCHEMA.COLUMNS where table_name = \'assets\''
 var assets
+
+tearDown(function () {
+  assets.end()
+})
 
 test('create schema', function (t) {
   assets = build(connString)
@@ -162,9 +168,4 @@ test('getting an non-existing asset', function (t) {
     t.equal(err.notFound, true, 'notFound property matches')
     t.end()
   })
-})
-
-test('ends', function (t) {
-  assets.end()
-  t.end()
 })
