@@ -114,6 +114,17 @@ test('mirror test validation', function (t) {
   })
 })
 
+test('missing name', function (t) {
+  var expected = {
+    status: 'wait'
+  }
+  assets.put(expected, function (err, result) {
+    ajv.validate(assets.jsonSchema, expected)
+    t.deepEqual(err.details, ajv.errors, 'error matches')
+    t.end()
+  })
+})
+
 test('status can be operational', function (t) {
   var expected = {
     name: 'a name',

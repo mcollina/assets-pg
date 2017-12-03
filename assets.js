@@ -14,6 +14,7 @@ var getOne = readQuery('get_one.sql')
 
 var schema = {
   type: 'object',
+  required: ['name'],
   properties: {
     id: {
       type: 'number'
