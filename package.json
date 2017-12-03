@@ -1,6 +1,6 @@
 {
   "name": "@matteo.collina/assets-pg",
-  "version": "3.0.0",
+  "version": "4.0.0",
   "description": "Manage Assets as a module, with node and postgres",
   "main": "assets.js",
   "scripts": {
